@@ -1,3 +1,8 @@
+docker 镜像默认镜像修改
+
+/etc/docker/daemon.json 
+
+
 docker网络部分
 
 docker native network driver: none, host, bridge, joined container

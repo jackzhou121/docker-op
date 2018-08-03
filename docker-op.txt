@@ -1,11 +1,29 @@
 docker 镜像默认镜像修改
 
 /etc/docker/daemon.json 
-
+增加内容{"registry-mirrors":["https://registry.docker-cn.com"]}
 
 docker网络部分
+docker提供两种网络服务：主机本地容器间网络访问服务和跨主机容器间网络访问
 
 docker native network driver: none, host, bridge, joined container
-docker remote network driver: flannel, weave, calico
+
+docker overlay网络
+overlay网络定义：通过技术手段在物理网络的基础上构建不同于物理网络的拓扑结构的逻辑网络，物理网络拓扑结构对于overlay网络终端而言是透明的，终端用户也不会感知物理网络的存在。
+
+overlay实现方式一vxlan技术
+详细介绍：https://blog.csdn.net/octopusflying/article/details/77609199
+
+vxlan是一种隧道网络，通过vxlan Tunnel End Point, VTEP设备实现
+
+vtep职责：
+封装数据包：将虚拟网络通信的数据帧加上vxlan头部和外部UDP和IP首部
+转发：对封装好的数据包进行转发；
+解封装数据包：拆除外部IP，UDP，以及VXLAN首部然后将内部数据包交付给正确的终端。
+
+macvlan模式
+macvlan模式比较简单，数据传输效率比较高，虚拟的网卡的数据直接和硬件网卡连接；
+
+flannel网络
 
 

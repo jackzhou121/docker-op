@@ -1,5 +1,125 @@
-docker 镜像默认镜像修改
 
+Docker 运维基础包括三个方面：docker容器状态操作命令，docker资源配额操作命令，docker 网络操作命令, docker 存储操作命令
+
+
+
+
+
+Docker network 运维基础
+
+Docker network list 查看容器网络，默认有docker0, host, none
+Docker run --network=[host|none|docker0] 制定网络类型参数
+
+docker0网络方式用于建立容器的私有网络空间namespace，包括独立的IP地址，网关，路由；
+Host网络方式实现了容器共享host主机网络，与host网络处于同一个namespace；
+None网络方式实现了网络隔离，容器实现了none网络，只有loop接口；
+
+
+bridge veth pair tap设备的实现原理
+https://www.ibm.com/developerworks/cn/linux/1310_xiawc_networkdevice/
+
+
+Docker创建用户自己的网络
+Docker network create --driver bridge my_net
+docker network create --driver bridge --subnet 172.22.16.0/24 --gateway 172.22.16.1 my_net2
+查看网络配置
+Docker network inspect my_net
+
+容器启动时通过--network=my_net指定网络
+
+docker run -it --network=my_net --ip 172.18.0.2 busybox //指定busybox容器的网络和IP地址
+
+不同网络namespace容器间通信只能通过veth pair
+这是因为docker 通过iptables将不同网络进行了隔离
+Docker network connect my_net2 docker_id //将容器添加一块网卡
+
+容器通信的三种方式：veth pair， Docker DNS Server，joined；
+Docker DNS Server为docker默认的DNS 服务器，让容器可以通过容器名字直接访问容器；
+Joined方式让多个容器共享同一个网络协议栈，从而实现相互访问；
+Docker run -it --network=container:other_docker_name image_name
+
+Iptables -t nat -S 这条命令可以查看nat上的规则
+
+Iptables-save 查看所有的iptables规则
+
+
+Docker访问外网的原理
+假设容器使用的网络为Docker0
+1. 容器访问外网的数据包首先会发给网关docker0；
+2. 通过Host路由只宿主机网卡eth0；
+3. NAT会做postrouting处理，规则为：-A POSTROUTING -s 172.17.0.0/16 ! -o docker0 -j MASQUERADE；
+4. 这要数据包的source地址就更换为eth0的地址；
+5. reply数据包先发给eth0， 在转发给docker0， docker0 再发给容器的网卡；
+
+
+外网访问docker容器
+容器通过将端口映射到Host 网络namespace中再通过Docker-proxy将数据包转发到容器内部；
+Docker-proxy 原理分析
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+容器存储
+1. 容器存储方式之一Data Volume
+Data volume是Host主机上目录或者文件，数据可以做到持久化存储到data volume； 
+bind mount VS docker managed volume
+Bind mount 将Host文件或者目录mount到容器中
+Docker run -v /Host/path/[file|dir]:/docker/path/[file|dir]:privileges
+Privileges:ro, rw, wo
+Default privilege: rw
+
+创建docker managed volume 
+Docker run -v /usr/local/apache2/htdocs httpd
+命令之后会在/var/lib/docker/下面生成挂在目录；
+
+bind mount过程中Host文件或者目录会覆盖docker中相同文件名或者目录;
+Data managed volume 则会复制docker中的目录至新的volume中；
+Bind mount 可以控制挂载目录操作权限；
+docker managed volume是读写挂在的目录；
+
+容器数据共享
+
+如果多个容器共享同一个存储，可以创建挂载该目录的容器
+
+docker run --volumes-from docker_name docker_image
+
+
+
+
+
+
+
+
+
+Docker 网络
+
+1. overlay网络的实现
+Overlay通过vxlan实现容器间的网络通信
+
+Overlay详细实现过程
+
+2. macvlan
+Linux内核本身已经实现macvlan功能
+Macvlan通过实现多个虚拟网卡
+
+
+
+3. 删除处于exited状态的docker
+
+docker cintainer prune
+
+
+docker 镜像默认镜像repositry-mirror修改
 /etc/docker/daemon.json 
 增加内容{"registry-mirrors":["https://registry.docker-cn.com"]}
 

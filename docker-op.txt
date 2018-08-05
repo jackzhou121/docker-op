@@ -59,16 +59,6 @@ Docker-proxy 原理分析
 
 
 
-
-
-
-
-
-
-
-
-
-
 容器存储
 1. 容器存储方式之一Data Volume
 Data volume是Host主机上目录或者文件，数据可以做到持久化存储到data volume； 
@@ -116,7 +106,7 @@ Macvlan通过实现多个虚拟网卡
 
 3. 删除处于exited状态的docker
 
-docker cintainer prune
+docker container prune
 
 
 docker 镜像默认镜像repositry-mirror修改
@@ -146,4 +136,7 @@ macvlan模式比较简单，数据传输效率比较高，虚拟的网卡的数�
 
 flannel网络
 
-
+docker虚拟网络知识补充
+虚拟vlan
+一个 VLAN 母设备不可能拥有两个相同 ID 的 VLAN 子设备，因此也就不可能出现数据交换情况。如果想让一个 VLAN 里接多个设备，就需要
+交换功能。在 Linux 里 Bridge 专门实现交换功能，因此将 VLAN 子设备 attach 到一个 Bridge 上就能完成后续的交换功能。总结起来，Bridge 加 VLAN device 能在功能层面完整模拟现实世界里的 802.1.q 交换机.
